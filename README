@@ -1,0 +1,64 @@
+Instructions.
+
+Postgres is already installed. Database is setup for main user (lain).
+
+Start Postgres service
+systemctl start postgresql.service
+
+Connect to Postgres database
+psql -d tiff
+
+Database was originally created with
+createdb tiff
+
+Before running any of the python code enter the virtual environment
+source bin/activate
+
+List tables from the psql interface:
+\dt
+
+Execute the scripts in order:
+./createtables
+./populatetables
+
+Queries to do in psql:
+
+Look at the data:
+SELECT * FROM encounters;
+SELECT * FROM items;
+
+You don't have to look at everything:
+SELECT pokemon, method FROM encounters;
+
+You can count:
+SELECT COUNT(*) FROM encounters;
+SELECT COUNT(*) FROM encounters WHERE method='Plus';
+
+You can filter, sort, limit, and group:
+SELECT * FROM encounters WHERE pokemon='Pickachu';
+SELECT * FROM encounters ORDER BY pokeball;
+SELECT * FROM encounters ORDER BY time DESC LIMIT 3;
+SELECT pokeball,COUNT(pokemon) FROM encounters GROUP BY pokeball ORDER BY count DESC;
+
+You can look at both tables together:
+SELECT * FROM encounters AS e, items AS i WHERE e.encounter_id = i.encounter_id;
+SELECT e.pokemon FROM encounters AS e, items AS i WHERE e.encounter_id = i.encounter_id AND i.type='Pinap Berry';
+
+Realize that the comma is just a shorthand for an inner join. That's not the only kind:
+SELECT * FROM encounters AS e INNER JOIN items AS i ON e.encounter_id = i.encounter_id;
+SELECT * FROM encounters AS e LEFT JOIN items AS i ON e.encounter_id = i.encounter_id;
+SELECT * FROM encounters AS e LEFT JOIN items AS i ON e.encounter_id = i.encounter_id WHERE pokeball = 'Great ball' OR type='Razz Berry';
+
+You can select for "distinct" elements to ignore duplicates:
+SELECT DISTINCT pokemon FROM encounters AS e INNER JOIN items AS i ON e.encounter_id = i.encounter_id WHERE i.type='Pinap Berry';
+SELECT COUNT (DISTINCT pokemon) FROM encounters AS e INNER JOIN items AS i ON e.encounter_id = i.encounter_id WHERE i.type='Pinap Berry';
+
+You can get a table of how many items you used in each encounter:
+SELECT pokemon,time,COUNT(item_id) FROM encounters AS e LEFT JOIN items AS i ON e.encounter_id = i.encounter_id GROUP BY e.encounter_id ORDER BY time DESC;
+
+You can use a subquery to find the answer to "how many items, on average, did you use to catch a pokemon?":
+SELECT avg(count) FROM (SELECT pokemon,time,COUNT(item_id) FROM encounters AS e LEFT JOIN items AS i ON e.encounter_id = i.encounter_id GROUP BY e.encounter_id ORDER BY time DESC) AS sub;
+
+Cleanup:
+DROP TABLE items;
+DROP TABLE encounters;
